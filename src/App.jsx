@@ -1,7 +1,15 @@
+import { RouterProvider } from "react-router-dom";
+import { Suspense } from "react";
+import Loading from "./components/Loading";
+import router from "./routes";
+
 const App = () => {
-  return (
-    <div className="text-3xl font-bold underline">Hello World</div>
-  )
+
+    return (
+        <Suspense fallback={<Loading />}>
+            <RouterProvider router={router} />
+        </Suspense>
+    );
 }
 
 export default App

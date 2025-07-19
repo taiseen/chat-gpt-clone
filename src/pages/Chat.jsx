@@ -1,6 +1,11 @@
+import { useParams } from "react-router-dom";
+
 const Chat = () => {
+
+    const { id } = useParams();
+
     return (
-        <div>Chat</div>
+        <div>Chat 101 - {id}</div>
     )
 }
 
