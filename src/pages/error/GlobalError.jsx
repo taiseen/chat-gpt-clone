@@ -6,9 +6,9 @@ const GlobalError = () => {
     console.error(error);
 
     return (
-        <div className="p-10 text-center text-red-500">
+        <div className="p-10 text-center text-red-400">
             <h1 className="text-3xl font-bold mb-4">🚨 Unexpected Error</h1>
-            <p>{error?.message || "Something went wrong."}</p>
+            <p className="text-xl text-yellow-500">{error?.message || "Something went wrong."}</p>
         </div>
     );
 }

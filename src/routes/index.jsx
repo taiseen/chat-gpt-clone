@@ -6,9 +6,9 @@ import RootLayout from "../layouts/RootLayout";
 
 const GlobalError = lazy(() => import("../pages/error/GlobalError"));
 const UrlNotFound = lazy(() => import("../pages/error/UrlNotFound"));
+const SignInPage = lazy(() => import("../pages/auth/SignInPage"));
+const SignUpPage = lazy(() => import("../pages/auth/SignUpPage"));
 const Dashboard = lazy(() => import("../pages/Dashboard"));
-const SignIn = lazy(() => import("../pages/auth/SignIn"));
-const SignUp = lazy(() => import("../pages/auth/SignUp"));
 const Home = lazy(() => import("../pages/Home"));
 const Chat = lazy(() => import("../pages/Chat"));
 
@@ -23,8 +23,8 @@ const router = createBrowserRouter(
 
             children: [
                 { path: "/", element: <Home /> },
-                { path: "/sign-in/*", element: <SignIn /> },
-                { path: "/sign-up/*", element: <SignUp /> },
+                { path: "/sign-in/*", element: <SignInPage /> },
+                { path: "/sign-up/*", element: <SignUpPage /> },
                 {
                     element: <DashboardLayout />, // 🧩 Nested layout for /dashboard
                     // 📌 Must use <Outlet /> inside DashboardLayout to render children
