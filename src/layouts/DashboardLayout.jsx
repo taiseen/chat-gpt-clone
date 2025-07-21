@@ -22,11 +22,11 @@ const DashboardLayout = () => {
     return (
         <div className="flex gap-12 h-full pt-5">
 
-            <div className="flex-1/4">
+            <div className="flex-1/12">
                 <ChatList />
             </div>
 
-            <div className="flex-3/4 bg-slate-900">
+            <div className="flex-11/12 bg-slate-900">
                 {/* renders nested children */}
                 <Outlet />
             </div>

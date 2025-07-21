@@ -14,3 +14,4 @@
   * Usage of `<Outlet/>`
   * Catch-all 404 Route
   * Runtime Errors by `errorElement`
+* Auth Process by Clerk
