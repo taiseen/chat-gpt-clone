@@ -14,7 +14,7 @@ const RootLayout = () => {
     return (
         <ClerkProvider publishableKey={config.clerkKey} afterSignOutUrl="/">
             <QueryClientProvider client={queryClient}>
-                <div className="p-4 px-16 h-screen flex flex-col">
+                <div className="p-4 px-6 h-screen flex flex-col">
 
                     <header className="flex items-center justify-between">
 

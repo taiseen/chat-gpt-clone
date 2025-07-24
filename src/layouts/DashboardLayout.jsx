@@ -20,13 +20,13 @@ const DashboardLayout = () => {
 
 
     return (
-        <div className="flex gap-12 h-full pt-5">
+        <div className="flex gap-3 h-full pt-5">
 
-            <div className="flex-1/12">
+            <div className="flex-2/12">
                 <ChatList />
             </div>
 
-            <div className="flex-11/12 bg-slate-900">
+            <div className="flex-10/12 bg-slate-900">
                 {/* renders nested children */}
                 <Outlet />
             </div>
