@@ -26,7 +26,7 @@ const DashboardLayout = () => {
                 <ChatList />
             </div>
 
-            <div className="flex-10/12 bg-slate-900">
+            <div className="flex-10/12 ">
                 {/* renders nested children */}
                 <Outlet />
             </div>

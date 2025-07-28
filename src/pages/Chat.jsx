@@ -5,7 +5,9 @@ const Chat = () => {
     const { id } = useParams();
 
     return (
-        <div>Chat 101 - {id}</div>
+        <div className="h-full text-2xl">
+            Chat 101 - {id}
+        </div>
     )
 }
 
