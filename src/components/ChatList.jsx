@@ -9,11 +9,11 @@ const ChatList = () => {
     return (
         <div className="h-full flex flex-col">
 
-            <div className="flex flex-col gap-1 mb-2 pb-2 border-b borderStyle ">
+            <div className="flex flex-col gap-1 mb-2 pb-2 border-b borderStyle">
                 <Link to="/dashboard" className="font-bold py-2 bg-blue-500 hover:bg-blue-600 transition-colors text-center text-slate-200 font-light rounded">Create a new Chat</Link>
             </div>
 
-            <div className="flex flex-col overflow-y-auto scrollbar-custom">
+            <div className="flex flex-col overflow-y-auto customScrollbar">
                 {isPending
                     ? "Loading..."
                     : error

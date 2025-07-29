@@ -38,7 +38,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Input Form */}
+            {/* Input Form For Starting A New Chat */}
             <div className="form-wrapper">
                 <form onSubmit={handleSubmit} className="form">
                     <input

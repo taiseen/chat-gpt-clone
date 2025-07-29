@@ -106,20 +106,20 @@
 }
 
 /* Tailwind-compatible dark scrollbar */
-.scrollbar-custom {
+.customScrollbar {
   scrollbar-width: thin;
   scrollbar-color: #475569 #1e293b; /* thumb (gray-600), track (slate-800) */
 }
 
-.scrollbar-custom::-webkit-scrollbar {
+.customScrollbar::-webkit-scrollbar {
   width: 6px;
 }
 
-.scrollbar-custom::-webkit-scrollbar-track {
+.customScrollbar::-webkit-scrollbar-track {
   background: #1e293b; /* slate-800 */
 }
 
-.scrollbar-custom::-webkit-scrollbar-thumb {
+.customScrollbar::-webkit-scrollbar-thumb {
   background-color: #475569; /* slate-600 */
   border-radius: 8px;
 }
