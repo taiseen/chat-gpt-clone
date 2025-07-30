@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import ImgUploader from "./ImgUploader";
+import { IKImage } from "imagekitio-react";
+import config from "../config";
 
 
 const ChatInput = ({ data = [] }) => {
@@ -16,7 +18,6 @@ const ChatInput = ({ data = [] }) => {
         aiData: {},
     });
 
-
     useEffect(() => {
         endRef.current.scrollIntoView({ behavior: "smooth" });
     }, [data, question, answer, img.dbData]);
@@ -31,19 +32,18 @@ const ChatInput = ({ data = [] }) => {
         createChat.mutate(text);
     };
 
+    // img?.dbData?.filePath &&
+    // <IKImage
+    //     path={img.dbData.filePath}
+    //     urlEndpoint={config.urlEndpoint}
+    // />
+
     return (
         <div className="form-wrapper mx-auto">
 
             <div className="endChat" ref={endRef} />
 
             <form onSubmit={handleSubmit} className="form">
-                <ImgUploader setImg={setImg} />
-
-                <label htmlFor="file" className="submit-btn">
-                    <img src="/img/attachment.png" alt="" className="submit-btn-icon" />
-                </label>
-
-                <input id="file" type="file" multiple={false} hidden />
 
                 <input
                     type="text"
@@ -52,9 +52,13 @@ const ChatInput = ({ data = [] }) => {
                     className="input-field"
                 />
 
-                <button className="submit-btn">
-                    <img src="/img/arrow.png" alt="submit" className="submit-btn-icon" />
-                </button>
+                <div className="flex gap-2">
+                    <ImgUploader setImg={setImg} />
+
+                    <button className="submit-btn">
+                        <img src="/img/arrow.png" alt="submit" className="submit-btn-icon" />
+                    </button>
+                </div>
             </form>
         </div>
     )

@@ -40,19 +40,19 @@
   }
 
   .form-wrapper {
-    @apply mt-auto w-1/2 bg-slate-700 rounded-xl flex;
+    @apply mt-auto w-1/2 bg-slate-700 rounded-xl px-2;
   }
 
   .form {
-    @apply w-full h-full flex items-center justify-between gap-5 mb-2.5;
+    @apply w-full h-full flex items-center justify-between gap-3 mb-2.5;
   }
 
   .input-field {
-    @apply flex-1 p-3 bg-transparent border-none outline-none text-slate-300 ml-0.5;
+    @apply flex-1 p-2 bg-transparent border-none outline-none text-slate-300 ml-0.5;
   }
 
   .submit-btn {
-    @apply bg-blue-500 rounded-full border-none cursor-pointer p-2.5 flex items-center justify-center mr-3;
+    @apply bg-blue-500 rounded-full border-none cursor-pointer p-2.5;
   }
 
   .submit-btn-icon {

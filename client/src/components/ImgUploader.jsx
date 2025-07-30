@@ -5,15 +5,22 @@ import config from "../config";
 
 
 const ImgUploader = ({ setImg }) => {
+
     const ikUploadRef = useRef(null);
 
-    const onError = (err) => console.log("Error", err);
+    const onError = (err) => console.log("🟥 Error:- ", err);
 
     const onUploadProgress = (progress) => console.log("Progress", progress);
 
     const onSuccess = (res) => {
-        console.log("Success", res);
+        // console.log("🟩 Success:- ", res);
+
         setImg((prev) => ({ ...prev, isLoading: false, dbData: res }));
+
+        // Reset the input to allow re-uploading the same file
+        if (ikUploadRef.current) {
+            ikUploadRef.current.value = "";
+        }
     };
 
     const onUploadStart = (e) => {
@@ -44,18 +51,26 @@ const ImgUploader = ({ setImg }) => {
             publicKey={config.publicKey}
         >
             <IKUpload
+                // id="image-upload-input"
                 onUploadProgress={onUploadProgress}
                 onUploadStart={onUploadStart}
                 useUniqueFileName={true}
                 onSuccess={onSuccess}
                 onError={onError}
                 style={{ display: "none" }}
-                fileName="test-upload.png"
                 ref={ikUploadRef}
             />
             {
-                <label onClick={() => ikUploadRef.current.click()}>
-                    <img src="/attachment.png" alt="" />
+                <label
+                    // htmlFor="image-upload-input"
+                    className="submit-btn"
+                    onClick={() => ikUploadRef.current.click()}
+                >
+                    <img
+                        alt="Upload Image"
+                        src="/img/attachment.png"
+                        className="submit-btn-icon"
+                    />
                 </label>
             }
         </IKContext>
