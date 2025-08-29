@@ -13,16 +13,27 @@ const safetySettings = [
 
 const googleAi = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_PUBLIC_KEY });
 
-const aiModel = async (prompt) => {
+const aiModel = async (userInputData, imgObj = null) => {
+
+    // Build the parts array correctly
+    const parts = [];
+
+    // Add text part if provided
+    if (userInputData) {
+        parts.push({ text: userInputData });
+    }
+
+    // Add image part if provided
+    if (imgObj && imgObj.inlineData) {
+        parts.push({ inlineData: { ...imgObj.inlineData } });
+    }
 
     const response = await googleAi.models.generateContent({
         model: "gemini-1.5-flash",
-        contents: prompt,
+        contents: [{ parts }],
         config: { safetySettings },
     });
 
-    // console.log(response.text);
-    
     return response;
 }
 
