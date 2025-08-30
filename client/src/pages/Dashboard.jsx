@@ -1,13 +1,17 @@
-import { useChatInput } from "../api/mutation";
+import { createChatMessage } from "../api/mutation";
+
 
 const Dashboard = () => {
-    const { createChat } = useChatInput();
+
+    const { createChat } = createChatMessage();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         const text = e.target.text.value;
         if (!text) return;
-        createChat.mutate(text);
+
+        createChat(text);
     };
 
     return (
@@ -48,7 +52,7 @@ const Dashboard = () => {
                         className="input-field"
                     />
 
-                    <button className="submit-btn">
+                    <button className="submit-btn" type="submit">
                         <img src="/img/arrow.png" alt="submit" className="submit-btn-icon" />
                     </button>
                 </form>

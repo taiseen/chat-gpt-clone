@@ -1,171 +1,263 @@
+import { useUpdateChatMessage } from "../api/mutation";
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { IKImage } from "imagekitio-react";
-import aiModel from "../providers/GoogleGenAI.js";
+import { getChatById } from "../api/query";
+import generateContentStream from "../providers/GoogleGenAI";
+import LoadingSpinner from "../components/LoadingSpinner";
 import ChatInput from "../components/ChatInput";
 import Markdown from "react-markdown";
 import config from "../config";
-
 
 const imgDefaultState = {
     isLoading: false,
     error: "",
     dbData: {},
     aiData: {},
-}
+};
 
 const Chat = () => {
+    const { id: chatId } = useParams();
 
-    const { id } = useParams();
+    const { isPending, error, data } = getChatById(chatId);
+    const { updateChat } = useUpdateChatMessage(chatId);
 
-    const path = useLocation().pathname;
-    const chatId = path.split("/").pop();
-
-    const url = `${config.apiUrl}/api/chats/${chatId}`;
-
-    const { isPending, error, data } = useQuery({
-        queryKey: ["chat", chatId],
-        queryFn: () =>
-            fetch(url, { credentials: "include" }).then((res) => res.json()),
-    });
-
-    const scrollToBottom = useRef(null);
-    const formRef = useRef(null);
-
-    const [isLoading, setIsLoading] = useState(false);
+    const [messages, setMessages] = useState([]); // Local state for streaming
     const [img, setImg] = useState(imgDefaultState);
-    const [question, setQuestion] = useState("");
-    const [answer, setAnswer] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
+    const formRef = useRef(null);
+    const scrollToBottom = useRef(null);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        setIsLoading(true);
-
-        const userInput = e.target.text.value;
-        if (!userInput) return;
-        setQuestion(userInput);
-
-        try {
-            const response = await aiModel(userInput, img.aiData);
-
-            setImg(imgDefaultState); // reset image state for next img upload...
-            setIsLoading(false);
-
-            // Check if response has text property
-            if (response && response.text) {
-                simulateStreaming(response.text);
-            } else {
-                console.error("Unexpected response format:", response);
-                setAnswer("Sorry, I couldn't process that request.");
-            }
-        } catch (err) {
-            console.error("Error generating AI response:", err);
-            setIsLoading(false);
-            setAnswer("Something went wrong! Please try again.");
+    // Sync backend history to local messages on load/update
+    useEffect(() => {
+        if (data?.history) {
+            setMessages(data.history);
         }
-    };
+    }, [data]);
 
-    const simulateStreaming = (fullText) => {
-        let i = 0;
-        setAnswer(""); // reset
-        const interval = setInterval(() => {
-            setAnswer((prev) => prev + fullText[i]);
-            i++;
-            if (i >= fullText.length) clearInterval(interval);
-        }, 5); // 5ms per character
-    };
+    console.log(data);
 
 
     useEffect(() => {
-        scrollToBottom.current.scrollIntoView({ behavior: "smooth" });
-    }, [data, question, answer, img.dbData]);
+        // Only run once on mount, after data loads
+        if (!data?.history || messages.length > 0) return;
+
+        // Set initial messages from history
+        setMessages(data.history);
+
+        // Check if last message is from user → AI should respond
+        const lastMsg = data.history.at(-1);
+        if (lastMsg?.role === "user") {
+            const userText = lastMsg.parts[0]?.text;
+            const hasImage = !!lastMsg.img;
+
+            // Find image data if exists (from history)
+            const imgFromHistory = hasImage
+                ? data.history.find((m) => m.img)?.img // or store img in a better way
+                : null;
+
+            // Simulate AI response automatically
+            const autoRespond = async () => {
+                setIsLoading(true);
+                let aiResponse = "";
+
+                try {
+                    // If image was part of message, pass it to AI
+                    const imgData = imgFromHistory
+                        ? { filePath: imgFromHistory } // or reconstruct image data
+                        : null;
+
+                    const stream = await generateContentStream(userText, imgData);
+                    setMessages((prev) => [
+                        ...prev,
+                        { role: "model", parts: [{ text: "" }] },
+                    ]);
+
+                    for await (const chunk of stream) {
+                        const text = chunk?.text || "";
+                        aiResponse += text;
+                        setMessages((prev) => {
+                            const msgs = [...prev];
+                            msgs[msgs.length - 1].parts[0].text += text;
+                            return msgs;
+                        });
+                    }
+
+                    // ✅ Now save to backend
+                    updateChat({
+                        question: userText,
+                        answer: aiResponse,
+                        img: imgData, // if needed
+                    });
+                } catch (err) {
+                    console.error("AI stream failed:", err);
+                    setMessages((prev) => {
+                        const msgs = [...prev];
+                        msgs[msgs.length - 1].parts[0].text = "Sorry, I couldn't process that.";
+                        return msgs;
+                    });
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            autoRespond();
+        }
+    }, [data, messages.length]); // ← watch data and messages
+
+    // Auto-scroll
+    useEffect(() => {
+        scrollToBottom.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages, img.dbData, img.aiData, isLoading]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const userInput = e.target.text.value.trim();
+        if (!userInput || isLoading) return;
+
+        setIsLoading(true);
+
+        // Add user message (with image if exists)
+        const userMsg = {
+            role: "user",
+            parts: [{ text: userInput }],
+            ...(img.dbData?.filePath && { img: img.dbData.filePath }),
+        };
+        setMessages((prev) => [...prev, userMsg]);
+
+
+        let aiResponse = "";
+        try {
+            const stream = await generateContentStream(userInput, img.aiData);
+            setMessages((prev) => [...prev, { role: "model", parts: [{ text: "" }] }]);
+
+            for await (const chunk of stream) {
+                const text = chunk?.text || "";
+                aiResponse += text;
+                setMessages((prev) => {
+                    const msgs = [...prev];
+                    msgs[msgs.length - 1].parts[0].text += text;
+                    return msgs;
+                });
+            }
+
+            // ✅ Mutation: now save new Q&A to backend
+            updateChat({
+                question: userInput,
+                answer: aiResponse,
+                img: img.dbData,
+            });
+
+            // ✅ Only reset input field, NOT the image
+            formRef.current.reset();
+
+            // Optional: Clear image only if you want
+            // setImg(imgDefaultState); // ← Uncomment only if desired
+
+        } catch (err) {
+            // Handle error without clearing image
+            setMessages((prev) => {
+                const msgs = [...prev];
+                msgs[msgs.length - 1].parts[0].text = "Sorry, I couldn't process that.";
+                return msgs;
+            });
+            formRef.current.reset();
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isPending) return <div>Loading chat...</div>;
+    if (error) return <div>Error loading chat.</div>;
 
     return (
-        <div className="h-full flex flex-col items-center relative">
+        <div className="h-full flex flex-col items-center relative ">
             <div className="w-full flex-1 flex justify-center overflow-auto customScrollbar">
                 <div className="w-full flex flex-col gap-4 px-2">
 
-                    {question && (
-                        <div className="self-end bg-slate-600 max-w-[80%] rounded p-2">
-                            {question}
-                        </div>
-                    )}
-
-                    {isLoading && (
-                        <div className="self-start size-8 border-2 border-green-500 border-t-transparent border-b-transparent rounded-full animate-spin"></div>
-                    )}
-
-
-                    {answer && (
-                        <div className="self-start bg-slate-600 max-w-[80%] rounded p-2">
-                            <Markdown>{answer}</Markdown>
-                        </div>
-                    )}
-
-                    {/* 
-                        <div className="self-end bg-slate-600 max-w-[80%] rounded p-2">user</div>
-                        <div className="self-start bg-slate-600 max-w-[80%] rounded p-2">ai model</div> 
-                    */}
-
-                    <div>
-                        {img.isLoading && <div className="text-green-500">Loading...</div>}
-                        {
-                            // display image at UI
-                            img.dbData.filePath &&
-                            <IKImage
-                                width={380}
-                                path={img.dbData.filePath}
-                                urlEndpoint={config.urlEndpoint}
-                                transformation={[{ width: "380" }]}
-                            />
-                        }
-                    </div>
-
-                    <div className="endChat" ref={scrollToBottom} />
-
-                    {/* {isPending ? (
-                        "Loading..."
-                    ) : error ? (
-                        "Something went wrong!"
-                    ) : (
-                        data?.history?.map((message, i) => (
-                            <div key={i}>
-                                {message.img && (
-                                    <IKImage
-                                        urlEndpoint={import.meta.env.VITE_IMAGE_KIT_ENDPOINT}
-                                        transformation={[{ height: 300, width: 400 }]}
-                                        lqip={{ active: true, quality: 20 }}
-                                        path={message.img}
-                                        loading="lazy"
-                                        height="300"
-                                        width="400"
-                                    />
-                                )}
-
-                                <div
-                                    className={`p-5 max-w-[80%] 
-                                    ${message.role === "user"
-                                            ? "bg-[#2c2937] rounded-2xl self-end"
-                                            : ""
-                                        }`}
-                                >
-                                    <Markdown>{message.parts[0].text}</Markdown>
-                                </div>
+                    {/* Render chat history */}
+                    {messages.map((msg, i) => (
+                        <div
+                            key={i}
+                            className={`p-3 max-w-[80%] rounded-xl flex flex-col gap-2  
+                            ${msg.role === "user"
+                                    ? "bg-[#2c2937] self-end"
+                                    : "bg-gray-700 self-start"
+                                }
+                                `}
+                        >
+                            {/* ✅ Show image from message history */}
+                            {msg.img && (
+                                <IKImage
+                                    urlEndpoint={config.imgUrlEndpoint}
+                                    path={msg.img || img.dbData.filePath}
+                                    transformation={[{ width: 400 }]}
+                                    lqip={{ active: true }}
+                                    loading="lazy"
+                                    width="400"
+                                    height={"400"}
+                                    className="rounded-md max-h-60 object-contain"
+                                />
+                            )}
+                            {/* Text */}
+                            <div className="whitespace-pre-wrap">
+                                <Markdown>{msg.parts[0].text}</Markdown>
                             </div>
-                        ))
+                        </div>
+                    ))}
+
+                    {/* Show image preview: from local base64 first, then from ImageKit */}
+                    {/* {img.aiData?.inlineData && (
+                        <div className="mb-2 relative w-fit">
+                            <img
+                                src={`data:${img.aiData.inlineData.mimeType};base64,${img.aiData.inlineData.data}`}
+                                alt="Uploaded preview"
+                                className="max-h-60 rounded object-contain"
+                                style={{ maxHeight: "240px", maxWidth: "100%" }}
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() => setImg(imgDefaultState)}
+                                className="text-red-500 hover:text-red-700 text-lg absolute top-0 right-0 cursor-pointer"
+                                title="Remove image"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    )} */}
+
+                    {/* Once uploaded, show from ImageKit */}
+                    {img.dbData?.filePath && (
+                        <IKImage
+                            urlEndpoint={config.imgUrlEndpoint}
+                            path={img.dbData.filePath}
+                            transformation={[{ width: 400, height: 300 }]}
+                            lqip={{ active: true }}
+                            loading="lazy"
+                            width="400"
+                            height="300"
+                            className="mb-2 rounded"
+                        />
                     )}
 
-                    {data && <NewPrompt data={data} />} */}
 
-                    <ChatInput onSubmit={handleSubmit} setImg={setImg} />
+                    {/* Loading spinner during AI response */}
+                    {isLoading && (
+                        <div className="self-start bg-gray-700 p-3 rounded-xl max-w-[80%]">
+                            <LoadingSpinner />
+                        </div>
+                    )}
+
+                    <div ref={scrollToBottom} />
                 </div>
             </div>
+
+            {/* Input Form */}
+            <ChatInput onSubmit={handleSubmit} setImg={setImg} formRef={formRef} />
         </div>
     );
-}
+};
 
-export default Chat
+export default Chat;

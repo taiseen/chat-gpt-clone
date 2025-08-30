@@ -1,11 +1,11 @@
 import ImgUploader from "./ImgUploader";
 
-const ChatInput = ({ onSubmit, setImg }) => {
+const ChatInput = ({ onSubmit, setImg, formRef }) => {
 
     return (
         <div className="form-wrapper mx-auto">
 
-            <form onSubmit={onSubmit} className="form relative">
+            <form onSubmit={onSubmit} className="form relative" ref={formRef}>
 
                 <input
                     type="text"

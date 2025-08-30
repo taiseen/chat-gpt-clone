@@ -1,10 +1,12 @@
-import { useGetChatList } from "../api/query";
+// import DemoChatTitle from "./DemoChatTitle";
+import LoadingSpinner from "./LoadingSpinner";
+import links from "../routes/links";
+import { getChatList } from "../api/query";
 import { Link } from "react-router-dom";
-import DemoChatTitle from "./DemoChatTitle";
 
 const ChatList = () => {
 
-    const { isPending, error, data } = useGetChatList();
+    const { isPending, error, data } = getChatList();
 
     return (
         <div className="h-full flex flex-col">
@@ -15,21 +17,21 @@ const ChatList = () => {
 
             <div className="flex flex-col overflow-y-auto customScrollbar">
                 {isPending
-                    ? "Loading..."
+                    ? <LoadingSpinner />
                     : error
                         ? "Something went wrong!"
                         : data?.length === 0
                             ? "No chats found"
                             : data?.map((chat) => (
                                 <Link
-                                    className="p-2.5 rounded-md hover:bg-slate-800 transition-colors"
-                                    to={`/dashboard/chats/${chat._id}`} key={chat._id}>
+                                    className="p-2 rounded-md hover:bg-slate-700/80 transition-colors"
+                                    to={`${links.chatId}${chat._id}`} key={chat._id}>
                                     {chat.title}
                                 </Link>
                             ))
                 }
 
-                <DemoChatTitle />
+                {/* <DemoChatTitle /> */}
             </div>
 
             <div className="mt-auto flex items-center gap-2">

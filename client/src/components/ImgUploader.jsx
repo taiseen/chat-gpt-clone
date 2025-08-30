@@ -1,4 +1,4 @@
-import imgAuthenticator from "../config/imgAuthenticator";
+import imgAuthenticator from "../api/imgAuthenticator";
 import config from "../config";
 import { IKContext, IKUpload } from "imagekitio-react";
 import { useRef, useState } from "react";
@@ -67,7 +67,7 @@ const ImgUploader = ({ setImg }) => {
     return (
         <IKContext
             authenticator={imgAuthenticator}
-            urlEndpoint={config.urlEndpoint}
+            urlEndpoint={config.imgUrlEndpoint}
             publicKey={config.publicKey}
         >
             <div className="flex items-center">

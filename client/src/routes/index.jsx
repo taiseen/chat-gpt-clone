@@ -3,14 +3,15 @@ import { lazy } from "react";
 
 import DashboardLayout from "../layouts/DashboardLayout";
 import RootLayout from "../layouts/RootLayout";
+import links from "./links";
 
-const GlobalError = lazy(() => import("../pages/error/GlobalError"));
-const UrlNotFound = lazy(() => import("../pages/error/UrlNotFound"));
-const SignInPage = lazy(() => import("../pages/auth/SignInPage"));
-const SignUpPage = lazy(() => import("../pages/auth/SignUpPage"));
-const Dashboard = lazy(() => import("../pages/Dashboard"));
-const Home = lazy(() => import("../pages/Home"));
-const Chat = lazy(() => import("../pages/Chat"));
+const GlobalError = lazy(() => import("@/pages/error/GlobalError"));
+const UrlNotFound = lazy(() => import("@/pages/error/UrlNotFound"));
+const SignInPage = lazy(() => import("@/pages/auth/SignInPage"));
+const SignUpPage = lazy(() => import("@/pages/auth/SignUpPage"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Home = lazy(() => import("@/pages/Home"));
+const Chat = lazy(() => import("@/pages/Chat"));
 
 
 const router = createBrowserRouter(
@@ -22,22 +23,22 @@ const router = createBrowserRouter(
             errorElement: <GlobalError />, // ✅ Handles unexpected runtime errors gracefully
 
             children: [
-                { path: "/", element: <Home /> },
-                { path: "/sign-in/*", element: <SignInPage /> },
-                { path: "/sign-up/*", element: <SignUpPage /> },
+                { path: links.root, element: <Home /> },
+                { path: `${links.signIn}/*`, element: <SignInPage /> },
+                { path: `${links.sighUp}/*`, element: <SignUpPage /> },
                 {
                     element: <DashboardLayout />, // 🧩 Nested layout for /dashboard
                     // 📌 Must use <Outlet /> inside DashboardLayout to render children
                     children: [
-                        { path: "/dashboard", element: <Dashboard /> },
-                        { path: "/dashboard/chats/:id", element: <Chat /> },
+                        { path: links.dashboard, element: <Dashboard /> },
+                        { path: `${links.chatId}:id`, element: <Chat /> },
                     ],
                 },
             ],
         },
 
         // 🚨 Catch-all 404 route (must be outside main layout tree)
-        { path: "*", element: <UrlNotFound />, },
+        { path: links.notFound, element: <UrlNotFound />, },
     ]
 );
 

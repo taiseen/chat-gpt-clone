@@ -1,3 +1,5 @@
+import ClerkAuthProvider from './providers/ClerkAuthProvider.jsx';
+import TanstackQuery from './providers/TanstackQuery.jsx';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import React from 'react';
@@ -9,6 +11,10 @@ const reactRoot = ReactDOM.createRoot(htmlRoot);
 
 reactRoot.render(
   <React.StrictMode>
-    <App />
+    <TanstackQuery>
+      <ClerkAuthProvider>
+        <App />
+      </ClerkAuthProvider>
+    </TanstackQuery>
   </React.StrictMode>,
 )
